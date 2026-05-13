@@ -98,9 +98,9 @@ class ResearchManager:
             )
     async def search(self, item: WebSearchItem) -> str | None:
         """Perform a search for the query"""
-        input = f"Search term: {item.query}. \n Reason for search: {item.reason}"
+        payload = f"Search term: {item.query}. \n Reason for search: {item.reason}"
         try:
-            result = await Runner.run(self.search_agent, input)
+            result = await Runner.run(self.search_agent, payload)
             return str(result.final_output)
         except Exception as e:
             return None
@@ -127,19 +127,19 @@ class ResearchManager:
         print(f"Completed searching")
         return results
     
-    async def write_report(self, query: str, search_results: list[str]) -> ReportData:
+    async def write_report(self, query: str, search_results: list[str]) -> ReportData | None:
         """Write a report based on the query and search results"""
         print("Writing report.....")
-        input = f"Query: {query}. \n Summarized Search results: {search_results}"
+        payload = f"Query: {query}. \n Summarized Search results: {search_results}"
         try:
-            result = await Runner.run(self.writer_agent, input)
+            result = await Runner.run(self.writer_agent, payload)
             return result.final_output_as(ReportData)
-        except Exception as e:
+        except Exception:
             return None
     async def deliver_report_via_email(self, report: ReportData, to_email: str):
         print("Sending email.....")
-        input = f"Report: {report.markdown_report}. Email to send to: {to_email}"
-        result = await Runner.run(self.email_agent, input)
+        payload = f"Report: {report.markdown_report}. Email to send to: {to_email}"
+        result = await Runner.run(self.email_agent, payload)
         print(f"Email sent")
         return result.final_output
     
@@ -152,6 +152,9 @@ class ResearchManager:
             search_results = await self.perform_searches(search_plan)
             yield "Searches completed, writing report..."
             report = await self.write_report(query, search_results)
+            if report is None:
+                yield "Report generation failed; email was not sent."
+                return
             yield "Report written, sending email..."
             await self.deliver_report_via_email(report, to_email)
             yield "Email sent"
