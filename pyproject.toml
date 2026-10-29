@@ -11,3 +11,8 @@ dependencies = [
     "openai-agents>=0.15.1",
     "pypdf>=6.11.0",
 ]
+
+[tool.uv.workspace]
+members = [
+    "trading_floor",
+]
