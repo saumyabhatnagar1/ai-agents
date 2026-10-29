@@ -1,11 +1,12 @@
-# AI Sales Agent
+# AI Agent Playground
 
 Build, research, and send with small AI agent workflows.
 
 This repo is a hands-on playground for agentic Python apps. It combines the
-[OpenAI Agents SDK](https://openai.github.io/openai-agents-python/), Gradio UIs,
-Brevo transactional email, and a few focused examples that show how agents can
-plan, delegate, use tools, and produce real-world outputs.
+[OpenAI Agents SDK](https://openai.github.io/openai-agents-python/),
+[CrewAI](https://crewai.com) crews, Gradio UIs, Brevo transactional email, and
+a few focused examples that show how agents can plan, delegate, use tools, and
+produce real-world outputs.
 
 Use it to explore:
 
@@ -13,6 +14,7 @@ Use it to explore:
 - Deep research workflows that plan web searches and synthesize reports.
 - A personal career chatbot powered by resume, LinkedIn, and summary files.
 - Tool calling patterns for email, lead capture, and notification workflows.
+- CrewAI crews for debate, company research, and stock picking.
 
 ## Project Highlights
 
@@ -45,6 +47,31 @@ Use it to explore:
 - Can send Pushover notifications when users provide details or ask questions
   the bot cannot answer.
 
+### Debate Crew
+
+`debate/` is a CrewAI project that argues both sides of a motion:
+
+- A debater presents the case for and against the motion.
+- A judge decides which side is more convincing from the arguments alone.
+- The default motion lives in `debate/src/debate/main.py`.
+
+### Financial Researcher
+
+`financial_researcher/` is a CrewAI project that researches one company:
+
+- A researcher gathers company news and potential.
+- An analyst turns that research into a structured report.
+- The default company lives in `financial_researcher/src/financial_researcher/main.py`.
+
+### Stock Picker
+
+`stock_picker/` is a CrewAI project that picks a company in a given sector:
+
+- A news analyst finds trending companies in India.
+- A financial researcher writes a report on each company.
+- A stock picker chooses one, with a manager delegating the work.
+- The default sector lives in `stock_picker/src/stock_picker/main.py`.
+
 ## Repository Map
 
 ```text
@@ -53,15 +80,21 @@ Use it to explore:
 ├── deep-research-agent.py     # Gradio deep research + email app
 ├── career-agent.py            # Personal career chatbot
 ├── constant.py                # Tool schemas for career-agent.py
-├── main.py                    # Minimal starter scaffold
-├── pyproject.toml             # Project metadata and dependencies
-├── uv.lock                    # Locked dependency graph
-└── me/                        # Local profile files for career-agent.py
+├── pyproject.toml             # Root project metadata and dependencies
+├── uv.lock                    # Locked dependency graph for the root project
+├── me/                        # Local profile files for career-agent.py
+├── debate/                    # CrewAI debate crew
+├── financial_researcher/      # CrewAI company research crew
+└── stock_picker/              # CrewAI stock-picking crew
 ```
+
+Each CrewAI directory is its own uv project, with its own `pyproject.toml`,
+`uv.lock`, and `.env`.
 
 ## Requirements
 
-- Python `>= 3.10`
+- Python `>= 3.10` for the root scripts
+- Python `>= 3.10, < 3.14` for the CrewAI projects
 - [uv](https://docs.astral.sh/uv/) for dependency management
 - An OpenAI API key
 - A Brevo API key and verified sender address for email flows
@@ -97,6 +130,9 @@ PUSHOVER_TOKEN=...
 
 Keep `.env` private. It is already ignored by git.
 
+Each CrewAI project needs its own `.env` in that project directory, with at
+least `OPENAI_API_KEY`.
+
 ## Run the Apps
 
 ### Cold Email Workflow
@@ -130,6 +166,33 @@ me/linkedin.pdf
 me/summary.txt
 ```
 
+### CrewAI Crews
+
+Install dependencies once inside the crew directory, then run it from there:
+
+```bash
+cd debate
+uv sync
+uv run debate
+```
+
+The same pattern works for the other crews:
+
+```bash
+cd financial_researcher
+uv sync
+uv run financial_researcher
+```
+
+```bash
+cd stock_picker
+uv sync
+uv run stock_picker
+```
+
+`crewai run` from inside a crew directory also works after `crewai` is
+installed.
+
 ## Environment Variables
 
 - `OPENAI_API_KEY`: Required for model calls.
@@ -143,7 +206,7 @@ me/summary.txt
 
 ## Dependencies
 
-Core packages are declared in `pyproject.toml`:
+Core packages for the root scripts are declared in `pyproject.toml`:
 
 - `openai-agents` for agent orchestration, tools, tracing, and web search.
 - `gradio` for browser-based demos.
@@ -151,7 +214,10 @@ Core packages are declared in `pyproject.toml`:
 - `dotenv` for local environment loading.
 - `pypdf` for extracting text from resume and LinkedIn PDFs.
 
-Sync everything with:
+The CrewAI projects depend on `crewai[tools]` and are installed from their own
+`pyproject.toml` files.
+
+Sync the root project with:
 
 ```bash
 uv sync
@@ -197,3 +263,4 @@ uv sync
 ```
 
 If a package is still missing, add it to `pyproject.toml` and sync again.
+For a CrewAI project, run `uv sync` inside that project's directory.
